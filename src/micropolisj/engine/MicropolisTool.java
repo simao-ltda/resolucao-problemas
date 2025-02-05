@@ -47,59 +47,76 @@ public enum MicropolisTool
     SOLAR(4, 4000, 0),
     WIND(1, 325, 0);
 
-	int size;
-	int cost;
+    int size;
+    int cost;
     int minPopulation;
     BuildingTechnology requiredTechnology;
 
+    // Singleton instance
+    private static MicropolisTool instance;
+
     private MicropolisTool(int size, int cost, int minPopulation) {
-		this.size = size;
-		this.cost = cost;
+        this.size = size;
+        this.cost = cost;
         this.minPopulation = minPopulation;
     }
 
-	public int getWidth()
-	{
-		return size;
-	}
+    // Singleton getInstance method
+    public static MicropolisTool getInstance() {
+        if (instance == null) {
+            instance = QUERY; // Default instance
+        }
+        return instance;
+    }
 
-	public int getHeight()
-	{
-		return getWidth();
-	}
+    public int getWidth()
+    {
+        return size;
+    }
 
-	public ToolStroke beginStroke(Micropolis engine, int xpos, int ypos)
-	{
-		if (this == BULLDOZER) {
-			return new Bulldozer(engine, xpos, ypos);
-		}
-		else if (this == WIRE ||
-			this == ROADS ||
-			this == BIGROADS ||
-			this == RAIL ||
-			this == STATION ) {
-			return new RoadLikeTool(engine, this, xpos, ypos);
-		}
-		else {
-			return new ToolStroke(engine, this, xpos, ypos);
-		}
-	}
+    public int getHeight()
+    {
+        return getWidth();
+    }
 
-	public ToolResult apply(Micropolis engine, int xpos, int ypos)
-	{
-		return beginStroke(engine, xpos, ypos).apply();
-	}
+    // Factory Method
+    public static class ToolFactory {
+        public static ToolStroke createToolStroke(MicropolisTool tool, Micropolis engine, int xpos, int ypos) {
+            switch (tool) {
+                case BULLDOZER:
+                    return new Bulldozer(engine, xpos, ypos);
+                case WIRE:
+                case ROADS:
+                case BIGROADS:
+                case RAIL:
+                case STATION:
+                    return new RoadLikeTool(engine, tool, xpos, ypos);
+                default:
+                    return new ToolStroke(engine, tool, xpos, ypos);
+            }
+        }
+    }
 
-	/**
-	 * This is the cost displayed in the GUI when the tool is selected.
-	 * It does not necessarily reflect the cost charged when a tool is
-	 * applied, as extra may be charged for clearing land or building
-	 * over or through water.
-	 */
-	public int getToolCost()
-	{
-		return cost;
-	}
+    public ToolStroke beginStroke(Micropolis engine, int xpos, int ypos)
+    {
+        return ToolFactory.createToolStroke(this, engine, xpos, ypos);
+    }
+
+    public ToolResult apply(Micropolis engine, int xpos, int ypos)
+    {
+        return beginStroke(engine, xpos, ypos).apply();
+    }
+
+    /**
+     * This is the cost displayed in the GUI when the tool is selected.
+     * It does not necessarily reflect the cost charged when a tool is
+     * applied, as extra may be charged for clearing land or building
+     * over or through water.
+     */
+    public int getToolCost()
+    {
+        return cost;
+    }
 
     public int getMinPopulation() {
         return minPopulation;
